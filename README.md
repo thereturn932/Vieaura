@@ -1,21 +1,29 @@
-# Basic Sample Hardhat Project
+### VIEAURA Challenge
 
-This project demonstrates a basic Hardhat use case. It comes with a sample contract, a test for that contract, a sample script that deploys that contract, and an example of a task implementation, which simply lists the available accounts.
+This projects puts requested amount of DAI into 3pool then LP tokens from pool to LiquidityGauge.
 
-Try running some of the following tasks:
+In this project Hardhat is used.
+
+To install hardhat
 
 ```shell
-npx hardhat accounts
-npx hardhat compile
-npx hardhat clean
-npx hardhat test
-npx hardhat node
-node scripts/sample-script.js
-npx hardhat help
+npm install --save-dev hardhat
+```
+To install waffle & ethers
+
+```shell
+npm install --save-dev @nomiclabs/hardhat-waffle ethereum-waffle chai @nomiclabs/hardhat-ethers ethers
+```
+
+To test this project mainnet should be forked by (Hardnet caches data when forked, block number is to not download forked data everytime new block added)
+Instead of <key> an alchemy account should be created and key of the account should be written.
+
+```shell
+npx hardhat node --fork https://eth-mainnet.alchemyapi.io/v2/<key> --fork-block-number 13734775
 ```
 
 
 TO-DO
-
-MINT'lenen CRV miktarını hesaplat. Mintlemeden önce ve sonra alınmış ödüller çıkartılarak bulunabilir.
-Kişi başına mintlenen CRV mikarını bulmanın bir yolunu bul.
+⋅⋅*Detailed Explanations for function
+⋅⋅*Appropriate Testing
+⋅⋅*Events will be added
