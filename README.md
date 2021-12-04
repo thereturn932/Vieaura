@@ -13,3 +13,9 @@ npx hardhat node
 node scripts/sample-script.js
 npx hardhat help
 ```
+
+
+TO-DO
+
+MINT'lenen CRV miktarını hesaplat. Mintlemeden önce ve sonra alınmış ödüller çıkartılarak bulunabilir.
+Kişi başına mintlenen CRV mikarını bulmanın bir yolunu bul.

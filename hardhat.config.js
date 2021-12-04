@@ -1,5 +1,5 @@
 require("@nomiclabs/hardhat-waffle");
-require("@nomiclabs/hardhat-vyper");
+require('@openzeppelin/hardhat-upgrades');
 
 // This is a sample Hardhat task. To learn how to create your own go to
 // https://hardhat.org/guides/create-task.html
@@ -19,7 +19,11 @@ task("accounts", "Prints the list of accounts", async (taskArgs, hre) => {
  */
 module.exports = {
   solidity: "0.8.4",
-  vyper: {
-    version: "0.1.0b10",
-  },
+  networks: {
+    hardhat: {
+      forking: {
+        url: "https://eth-mainnet.alchemyapi.io/v2/uSqwvCvvDRbp1bm4XbDBwZ-NIeZMMj0e",
+      }
+    }
+  }
 };
