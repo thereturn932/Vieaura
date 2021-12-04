@@ -23,7 +23,8 @@ npx hardhat node --fork https://eth-mainnet.alchemyapi.io/v2/<key> --fork-block-
 ```
 
 
-TO-DO
-⋅⋅*Detailed Explanations for function
-⋅⋅*Appropriate Testing
-⋅⋅*Events will be added
+TO-DO:
+
+*Detailed Explanations for function
+*Appropriate Testing
+*Events will be added
