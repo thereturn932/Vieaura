@@ -5,14 +5,14 @@ const main = async () => {
    * 
    * 
    */
-    const waveContractFactory = await hre.ethers.getContractFactory('VieauraToken');
-    const waveContract = await waveContractFactory.deploy();
-    await waveContract.deployed();
-    console.log("Contract deployed to:", waveContract.address);
+    const viaTokenFactory = await hre.ethers.getContractFactory('VieauraToken');
+    const viaToken = await viaTokenFactory.deploy();
+    await viaToken.deployed();
+    console.log("Contract deployed to:", viaToken.address);
     console.log("Minting...");
-    await waveContract.mint("0xdd2fd4581271e230360230f9337d5c0430bf44c0",hre.ethers.utils.parseEther('0.1'));
+    await viaToken.mint("0xdd2fd4581271e230360230f9337d5c0430bf44c0",hre.ethers.utils.parseEther('0.1'));
     console.log("Minted...");
-    const balance = await waveContract.balanceOf("0xdd2fd4581271e230360230f9337d5c0430bf44c0");
+    const balance = await viaToken.balanceOf("0xdd2fd4581271e230360230f9337d5c0430bf44c0");
     console.log("User balance is", hre.ethers.utils.formatEther(balance));
 
   };

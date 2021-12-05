@@ -1,120 +1,155 @@
 //SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
+/**
+Import contract interfaces
+ */
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import '@uniswap/v3-periphery/contracts/interfaces/ISwapRouter.sol';
 import '@uniswap/v3-periphery/contracts/libraries/TransferHelper.sol';
 import "./IContracts/IVIA.sol";
+import "./IContracts/LiquidityGaugeInterface.sol";
+import "./IContracts/IDepositZap.sol";
+import "./IContracts/MinterInterface.sol";
 import "hardhat/console.sol";
 
-interface IUniswapRouter is ISwapRouter {
-    function refundETH() external payable;
-}
 
 
-interface LiquidityGaugeInterface    {
-    function deposit(uint _value) external;
-    function deposit(uint _value, address addr) external;
-    function withdraw(uint _value) external;
-    function set_approve_deposit(address addr, bool can_deposit) external;
-}
 
-interface Interface3Pool {
-    function add_liquidity(uint[3] memory amounts, uint min_mint_amount) external;
-    function remove_liquidity(uint _amount, uint[3] memory min_amounts) external;
-    function get_virtual_price() external view returns (uint);
-}
-
-interface MinterInterface {
-    function mint(address gauge_addr) external;
-}
-
-
+/// @author TheReturn932
+/// @title Vieaura Challenge
+/** 
+@notice Deposits a certain amount of DAI of user into 3pool then deposits LP token got from 
+ 3pool into liquidity gauge. Users can harvest their CRV tokens and withdraw DAI back to their acounts.
+*/
 contract Vieaura {
+    using SafeMath for uint;
+
+    //Define Events
+    event Deposit(address indexed _from, uint _returnedLP, uint _depositedValue);
+    event Withdraw(address indexed _from, uint _sentLP, uint _withdrawnDAI);
+    event Harvest(address indexed _from, uint harvestedAmount);
+
     //Addresses of the contracts we will use 
-    address constant public _VIATokenAddress = address(0xe8D2A1E88c91DCd5433208d4152Cc4F399a7e91d);
+    address constant public _VIATokenAddress = address(0xC9a43158891282A2B1475592D5719c001986Aaec);
     address constant public _3poolAddress = address(0xbEbc44782C7dB0a1A60Cb6fe97d0b483032FF1C7);
     address constant public _daiAddress = address(0x6B175474E89094C44Da98b954EedeAC495271d0F);
     address constant public _liquidityGaugeAddress = address(0xbFcF63294aD7105dEa65aA58F8AE5BE2D9d0952A);
     address constant public _LPTokenAddress = address(0x6c3F90f043a72FA612cbac8115EE7e52BDe6E490);
     address constant public _minterAddress = address(0xd061D61a4d941c39E5453435B6345Dc261C2fcE0);
-    address constant public _uniswapRouter = address(0xE592427A0AEce92De3Edee1F18E0157C05861564);
-    ISwapRouter public immutable swapRouter = IUniswapRouter(0xE592427A0AEce92De3Edee1F18E0157C05861564);
+    ISwapRouter public immutable swapRouter = ISwapRouter(0xE592427A0AEce92De3Edee1F18E0157C05861564);
+    address constant public _depositZapAdress = address(0xA79828DF1850E8a3A3064576f380D90aECDD3359);
     
     //Token and Pool classes are created
     IERC20 public immutable _daiToken = IERC20(_daiAddress);
-    IVIA public immutable _VIAToken = IVIA(_VIATokenAddress);
+    IVIA public _VIAToken = IVIA(_VIATokenAddress);
     IERC20 public immutable _LPtoken = IERC20(_LPTokenAddress);
-    Interface3Pool public immutable _3poolContract = Interface3Pool(_3poolAddress);
+    IDepositZap public _DepositContract = IDepositZap(_depositZapAdress);
     LiquidityGaugeInterface public immutable _liquidityGauge = LiquidityGaugeInterface(_liquidityGaugeAddress);
     MinterInterface public immutable _minter = MinterInterface(_minterAddress);
 
     mapping(address => bool) private _approved;
+    mapping(address => bool) private _created;
     mapping(address => uint) private _approvedAmount;
     mapping(address => uint) private _LPAmountOfUser;
-    uint public _LPTokenInContract;
+    mapping(address => uint) private _unclaimedHarvest;
+
+    uint public _VIATokenSupply;
+    address[] users;
 
     address owner;
 
+    constructor() {
+        
+        owner = msg.sender;
+        console.log("Contract is started");
+    }
+
+    /// @dev might be used in future improvements
     modifier onlyOwner() {
         require(owner == msg.sender, "Ownable: caller is not the owner");
         _;
     }
 
-    constructor() {
-        owner = msg.sender;
-        console.log("Contract is started");
+    function ChangeVIATokenAddress(address _newAddress) external onlyOwner{
+        _VIAToken = IVIA(_newAddress);
     }
 
-    function Approve(uint256 underlyingAmount) external {
-        /**
-        Get allowance for transfer
-         */
-        _daiToken.approve(msg.sender, underlyingAmount);
+    /// @dev gets allowance for transfer from msg.sender
+    function approve(uint256 underlyingAmount) external {
+        _daiToken.approve(address(this), underlyingAmount);
         _approved[msg.sender] = true;
         _approvedAmount[msg.sender] = underlyingAmount;
     }
 
+    /**
+    @dev deposits underlyingAmount of DAI into 3pool, then deposits LP tokens into liquidity gauge.
+    VIA Tokens are given to account LP tokens of user.
+     */  
     function deposit(uint256 underlyingAmount) external {
-        /**
-        Deposits "underlyingAmount" of DAI token and recieves LP
-         */
-         require(_approved[msg.sender] && _approvedAmount[msg.sender] >= underlyingAmount);
-         _3poolContract.add_liquidity([underlyingAmount, 0, 0], 0);
-         _LPAmountOfUser[msg.sender] += _LPtoken.balanceOf(address(this));
-         _liquidityGauge.deposit(_LPtoken.balanceOf(address(this)));
-         _VIAToken.mint(msg.sender,_LPAmountOfUser[msg.sender]);
+        console.log("Works till here_1");
+         require(_approved[msg.sender] && _approvedAmount[msg.sender] >= underlyingAmount, "Not approved or approved amount is less than requested");
+         console.log("Works till here_2");
+         uint oldLPAmount = _LPtoken.balanceOf(address(this));
+         console.log("Works till here_3");
+         _daiToken.transferFrom(msg.sender, address(this), underlyingAmount);
+         console.log("Works till here_3");
+         _DepositContract.add_liquidity(_3poolAddress, [underlyingAmount, 0, 0], 0);
+         console.log("Works till here_4");
+         uint mintedLP = _LPtoken.balanceOf(address(this)) - oldLPAmount;
+         console.log("Works till here_5");
+         _LPAmountOfUser[msg.sender] += mintedLP;
+         console.log("Works till here_6");
+         _liquidityGauge.deposit(mintedLP);
+         console.log("Works till here_7");
+         _VIAToken.mint(msg.sender,mintedLP);
+         console.log("Works till here_8");
+         if (_created[msg.sender] == false) {
+             _created[msg.sender] = true;
+             users.push(msg.sender);
+         }
+         console.log("Works till here_9");
          _approved[msg.sender] = false;
+         console.log("Works till here_10");
          _approvedAmount[msg.sender] = 0;
+         console.log("Works till here_10");
+         emit Deposit(msg.sender, mintedLP, underlyingAmount);
     }
 
+    /**
+    @dev gets LP tokens from liquidity gauge and withdraw lpAmount of LP token 3pool,
+    VIA Tokens are given to account LP tokens of user.
+     */  
     function withdraw(uint256 lpAmount) external {
-        /**
-        Withdraws "lpAmount" of DAI token and recieves LP
-
-         */
         require(_VIAToken.balanceOf(msg.sender) >= lpAmount);
         _VIAToken.approve(msg.sender, lpAmount);
-        uint[3] memory minAmount = [uint256(0),uint256(0),uint256(0)];
         _liquidityGauge.withdraw(lpAmount);
         uint oldBalanceDAI = _LPtoken.balanceOf(address(this));
-        _3poolContract.remove_liquidity(lpAmount, minAmount);
+        _DepositContract.remove_liquidity(_3poolAddress, lpAmount, 0, 0);
         uint currentBalanceDAI = _LPtoken.balanceOf(address(this));
         uint userBalanceDAI = currentBalanceDAI - oldBalanceDAI;
         _daiToken.transfer(msg.sender, userBalanceDAI);
+        harvest();
         _VIAToken.burnFrom(msg.sender, lpAmount);
+        _LPAmountOfUser[msg.sender] -= lpAmount;
+        emit Withdraw(msg.sender, lpAmount, userBalanceDAI);
     } 
-
-    function harvest() external {
-        /**
-        claims the accumulated CRV rewards from Curve and
-        converts them to DAI 
-         */
+    /**
+    @dev claims CRV rewards of user from liquidity gauge
+     */  
+    function harvest() public {
         uint oldBalanceCRV = _LPtoken.balanceOf(address(this));
         _minter.mint(_liquidityGaugeAddress);
         uint currentBalanceCRV = _LPtoken.balanceOf(address(this));
-        uint userBalanceCRV = currentBalanceCRV - oldBalanceCRV;
-        swapExactInputSingle(userBalanceCRV);
+        uint unclaimedBalanceCRV = currentBalanceCRV - oldBalanceCRV;
+        for (uint i = 0; i< users.length; i++) {
+            _unclaimedHarvest[users[i]] += unclaimedBalanceCRV.mul(_VIAToken.balanceOf(users[i]).div(_VIAToken.totalSupply()));
+        }
+        swapExactInputSingle(_unclaimedHarvest[msg.sender]);
+        uint harvested = _unclaimedHarvest[msg.sender];
+        _unclaimedHarvest[msg.sender] = 0;
+        emit Harvest(msg.sender, harvested);
     }
 
     function exchangeRate() public pure returns (uint8){

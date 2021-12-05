@@ -1,6 +1,8 @@
 ### VIEAURA Challenge
 
-This projects puts requested amount of DAI into 3pool then LP tokens from pool to LiquidityGauge.
+This projects puts requested amount of DAI into 3pool then LP tokens from pool to LiquidityGauge. 
+
+To convert CRV tokens minted from gauge Uniswap is used.
 
 In this project Hardhat is used.
 
@@ -27,4 +29,3 @@ TO-DO:
 
 * Detailed Explanations for function
 * Appropriate Testing
-* Events will be added
