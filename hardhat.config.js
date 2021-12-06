@@ -22,8 +22,16 @@ module.exports = {
   networks: {
     hardhat: {
       forking: {
-        url: "https://eth-mainnet.alchemyapi.io/v2/<key>",
+        url: "YOUR_ALCHEMY_API_MAINNET_URL",
       }
+    },
+    rinkeby: {
+      url: 'YOUR_ALCHEMY_API_RINKEBY_URL',
+      accounts: ['YOUR_PRIVATE_ACCOUNT_KEY'],
+    },
+    mainnet: {
+      url: 'YOUR_ALCHEMY_API_MAINNET_URL',
+      accounts: ['YOUR_PRIVATE_ACCOUNT_KEY'],
     }
   },
   mocha: {
