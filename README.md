@@ -24,8 +24,14 @@ Instead of <key> an alchemy account should be created and key of the account sho
 npx hardhat node --fork https://eth-mainnet.alchemyapi.io/v2/<key> --fork-block-number 13734775
 ```
 
+Can be tested by running
+
+```shell
+npx hardhat test
+```
+
 
 TO-DO:
 
-* Detailed Explanations for function
-* Appropriate Testing
+* Improve safety of contract
+* There might be security issues in harvesting part.
