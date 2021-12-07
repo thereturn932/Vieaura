@@ -10,17 +10,9 @@ import '@uniswap/v3-periphery/contracts/interfaces/ISwapRouter.sol';
 import '@uniswap/v3-periphery/contracts/libraries/TransferHelper.sol';
 import "./IContracts/IVIA.sol";
 import "./IContracts/LiquidityGaugeInterface.sol";
-import "./IContracts/IDepositZap.sol";
+import "./IContracts/Interface3Pool.sol";
 import "./IContracts/MinterInterface.sol";
 import "hardhat/console.sol";
-
-interface Interface3Pool {
-    function add_liquidity(uint[3] memory amounts, uint min_mint_amount) external;
-    function remove_liquidity(uint _amount, uint[3] memory min_amounts) external;
-    function get_virtual_price() external view returns (uint);
-    
-}
-
 
 /// @author TheReturn932
 /// @title Vieaura Challenge
@@ -44,7 +36,6 @@ contract Vieaura {
     address constant public _LPTokenAddress = address(0x6c3F90f043a72FA612cbac8115EE7e52BDe6E490);
     address constant public _minterAddress = address(0xd061D61a4d941c39E5453435B6345Dc261C2fcE0);
     ISwapRouter public immutable swapRouter = ISwapRouter(0xE592427A0AEce92De3Edee1F18E0157C05861564);
-    address constant public _depositZapAdress = address(0xA79828DF1850E8a3A3064576f380D90aECDD3359);
     
 
     Interface3Pool public immutable _3pool = Interface3Pool(_3poolAddress);
@@ -52,7 +43,6 @@ contract Vieaura {
     IERC20 public immutable _daiToken = IERC20(_daiAddress);
     IVIA public _VIAToken = IVIA(_VIATokenAddress);
     IERC20 public immutable _LPtoken = IERC20(_LPTokenAddress);
-    IDepositZap public _DepositContract = IDepositZap(_depositZapAdress);
     LiquidityGaugeInterface public immutable _liquidityGauge = LiquidityGaugeInterface(_liquidityGaugeAddress);
     MinterInterface public immutable _minter = MinterInterface(_minterAddress);
 
