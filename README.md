@@ -27,6 +27,7 @@ npx hardhat node --fork https://eth-mainnet.alchemyapi.io/v2/<key> --fork-block-
 Can be tested by running
 
 ```shell
+npx hardhat install
 npx hardhat test
 ```
 
