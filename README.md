@@ -17,12 +17,8 @@ To install waffle & ethers
 npm install --save-dev @nomiclabs/hardhat-waffle ethereum-waffle chai @nomiclabs/hardhat-ethers ethers
 ```
 
-To test this project mainnet should be forked by (Hardnet caches data when forked, block number is to not download forked data everytime new block added)
-Instead of <key> an alchemy account should be created and key of the account should be written.
-
-```shell
-npx hardhat node --fork https://eth-mainnet.alchemyapi.io/v2/<key> --fork-block-number 13734775
-```
+To test this project mainnet should be forked (Hardnet caches data when forked, block number is to not download forked data everytime new block added).
+Instead of \<key\> an alchemy account should be created and key of the account should be written in `.env` file (`.env`should be created in root folder of project).
 
 Can be tested by running
 
